@@ -46,12 +46,19 @@ class wayfire_bench_screen : public wf::per_output_plugin_instance_t
     wf::option_wrapper_t<bool> use_stdout{"ammen99-bench/stdout"};
 
     wf::wl_timer<true> timer;
+    bool set_redraw_always = false;
 
   public:
     void init() override
     {
         output->render->add_effect(&pre_hook, wf::OUTPUT_EFFECT_DAMAGE);
         output->render->add_effect(&overlay_hook, wf::OUTPUT_EFFECT_OVERLAY);
+
+        if (immediate_draw)
+        {
+            output->render->set_redraw_always(true);
+            set_redraw_always = true;
+        }
 
         // Ensure we render at least 1 fps
         timer.set_timeout(1000, [=] ()
@@ -138,6 +145,11 @@ class wayfire_bench_screen : public wf::per_output_plugin_instance_t
         output->render->rem_effect(&pre_hook);
         output->render->rem_effect(&overlay_hook);
         output->render->damage_whole();
+
+        if (set_redraw_always)
+        {
+            output->render->set_redraw_always(false);
+        }
     }
 };
 
