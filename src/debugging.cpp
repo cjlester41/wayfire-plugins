@@ -67,9 +67,12 @@ class output_log_overlay_t : public wf::scene::node_t
 #if WAYFIRE_API_ABI_VERSION_MACRO >= 2025'05'19
         void render(const wf::scene::render_instruction_t& data) override
         {
-            auto g = wf::construct_box(wf::origin(self->get_bounding_box()), self->text.get_size());
-            data.pass->add_rect(wf::color_t{0.01, 0.01, 0.01, 0.1}, data.target, g, data.damage);
-            data.pass->add_texture(self->text.get_texture(), data.target, g, data.damage);
+            if (self->text.get_texture().texture)
+            {
+                auto g = wf::construct_box(wf::origin(self->get_bounding_box()), self->text.get_size());
+                data.pass->add_rect(wf::color_t{0.01, 0.01, 0.01, 0.1}, data.target, g, data.damage);
+                data.pass->add_texture(self->text.get_texture(), data.target, g, data.damage);
+            }
         }
 #else
         void render(const wf::render_target_t& target, const wf::region_t& region) override
@@ -149,9 +152,9 @@ class wayfire_ipc_debugger : public wf::plugin_interface_t
     std::regex filter{""};
     logger_streambuf_t::callback_t log_callback = [&] (std::string line)
     {
-        if (std::regex_match(line, filter))
+        std::cout << line << std::endl;
+        if (std::regex_search(line, filter))
         {
-            std::cout << line << std::endl;
             overlay->add_line(line);
         }
     };
@@ -172,7 +175,17 @@ class wayfire_ipc_debugger : public wf::plugin_interface_t
 
     wf::ipc::method_callback method_set_filter = [=] (const wf::json_t& data)
     {
-        this->filter = wf::ipc::json_get_string(data, "filter");
+        auto filter_str = wf::ipc::json_get_string(data, "filter");
+        try
+        {
+            this->filter = wf::ipc::json_get_string(data, "filter");
+        } catch (const std::regex_error& e)
+        {
+            LOGE("Got regex \"", filter_str, "\" but it is invalid: ", e.what());
+            return wf::ipc::json_error(e.what());
+        }
+
+        LOGI("Setting filter to \"", filter_str, "\"");
 
         // Add overlay
         if (!overlay)
