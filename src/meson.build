@@ -4,7 +4,7 @@
 #
 rc = shared_module('rounded-corners', 'rounded-corners.cpp',
     dependencies: [wayfire, wlroots],
-    install: true, install_dir: join_paths( get_option( 'libdir' ), 'wayfire' )
+    install: true, install_dir: join_paths( get_option( 'libdir' ), 'wayfire' ))
 
 #fcb = shared_module('follow-cursor-bindings', 'follow-cursor-bindings.cpp',
 #    dependencies: [wayfire, wlroots],
