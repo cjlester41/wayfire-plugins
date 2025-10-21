@@ -22,8 +22,8 @@ add_project_arguments(['-DWAYFIRE_PLUGIN'], language: ['cpp', 'c'])
 add_project_link_arguments(['-rdynamic'], language:'cpp')
 
 subdir('src')
-subdir('metadata')
-subdir('scripts')
+#subdir('metadata')
+#subdir('scripts')
 
 summary = [
 	'',
